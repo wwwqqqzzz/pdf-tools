@@ -15,6 +15,7 @@
     "test:coverage": "jest --coverage",
     "check-setup": "node scripts/check-setup.js",
     "check-env": "node scripts/check-env.js",
+    "test-build": "node scripts/test-build.js",
     "pre-deploy": "node scripts/pre-deploy-check.js",
     "deploy": "vercel --prod",
     "deploy-interactive": "node scripts/deploy.js"

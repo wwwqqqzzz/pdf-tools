@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import SimpleGA from '@/components/analytics/SimpleGA';
+import GAScript from '@/components/analytics/GAScript';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -76,32 +76,8 @@ export default function RootLayout({
   
   return (
     <html lang="en">
-      <head>
-        {isProduction && gaId && (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}', {
-                    page_title: document.title,
-                    page_location: window.location.href,
-                    send_page_view: true
-                  });
-                  console.log('Google Analytics initialized with ID: ${gaId}');
-                `,
-              }}
-            />
-          </>
-        )}
-      </head>
       <body className={inter.className}>
+        {isProduction && gaId && <GAScript gaId={gaId} />}
         <div className="min-h-screen flex flex-col">
           {children}
         </div>
