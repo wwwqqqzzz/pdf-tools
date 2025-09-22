@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Generate Localization Files",
+  "description": "Generate equivalent JSON localization files for other languages when a new English localization file is created under /locales/en",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "locales/en/**/*.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new English localization JSON file has been created in /locales/en. Please generate equivalent JSON files for other common languages (Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Korean, Russian). Maintain the same JSON structure and keys, but translate the values appropriately. Create files in corresponding language directories (e.g., /locales/es/, /locales/fr/, etc.) with the same filename."
+  }
+}
