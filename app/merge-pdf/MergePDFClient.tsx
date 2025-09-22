@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { DocumentDuplicateIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { useState, useCallback, useEffect } from 'react';
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import { usePDFProcessor } from '@/hooks/usePDFProcessor';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { validateFiles } from '@/lib/utils/file-validation';
 import { FILE_CONFIG } from '@/lib/config/constants';
 import FileUploader from '@/components/pdf/FileUploader';
@@ -12,7 +13,22 @@ import ResultDownload from '@/components/pdf/ResultDownload';
 export default function MergePDFClient() {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string>('');
+  const [startTime, setStartTime] = useState<number>(0);
   const { state, mergePDFs, reset } = usePDFProcessor();
+  const {
+    trackToolStart,
+    trackToolComplete,
+    trackToolError,
+    trackUpload,
+    trackDownloadComplete,
+    trackButtonClick,
+    trackPageInteraction,
+  } = useAnalytics();
+
+  // Track page view
+  useEffect(() => {
+    trackPageInteraction('page_view', 'merge_pdf');
+  }, [trackPageInteraction]);
 
   const handleFilesSelected = useCallback((selectedFiles: File[]) => {
     setError('');
@@ -27,40 +43,68 @@ export default function MergePDFClient() {
     
     if (!validation.isValid) {
       setError(validation.error || 'Invalid files');
+      trackToolError('merge_pdf', 'validation_error', validation.error);
       return;
     }
     
+    // Track file uploads
+    selectedFiles.forEach(file => {
+      trackUpload('merge_pdf', file.size, file.type);
+    });
+    
     setFiles(selectedFiles);
-  }, []);
+    trackPageInteraction('files_selected', 'merge_pdf', selectedFiles.length);
+  }, [trackUpload, trackToolError, trackPageInteraction]);
 
   const handleMerge = useCallback(async () => {
     if (files.length < 2) {
       setError('Please select at least 2 PDF files to merge');
+      trackToolError('merge_pdf', 'insufficient_files', 'Less than 2 files selected');
       return;
     }
     
     setError('');
-    await mergePDFs(files);
-  }, [files, mergePDFs]);
+    setStartTime(Date.now());
+    trackToolStart('merge_pdf');
+    trackButtonClick('merge_files', 'merge_pdf');
+    
+    try {
+      await mergePDFs(files);
+    } catch (error) {
+      trackToolError('merge_pdf', 'processing_error', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }, [files, mergePDFs, trackToolStart, trackButtonClick, trackToolError]);
 
   const handleReset = useCallback(() => {
     setFiles([]);
     setError('');
+    setStartTime(0);
     reset();
-  }, [reset]);
+    trackButtonClick('reset', 'merge_pdf');
+  }, [reset, trackButtonClick]);
 
   const handleRemoveFile = useCallback((index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
-  }, []);
+    trackButtonClick('remove_file', 'merge_pdf');
+  }, [trackButtonClick]);
 
-  const handleReorderFiles = useCallback((fromIndex: number, toIndex: number) => {
-    setFiles(prev => {
-      const newFiles = [...prev];
-      const [removed] = newFiles.splice(fromIndex, 1);
-      newFiles.splice(toIndex, 0, removed);
-      return newFiles;
-    });
-  }, []);
+  // Track completion when state changes to completed
+  useEffect(() => {
+    if (state.status === 'completed' && state.result && startTime > 0) {
+      const processingTime = Date.now() - startTime;
+      const totalFileSize = files.reduce((sum, file) => sum + file.size, 0);
+      
+      trackToolComplete('merge_pdf', processingTime, totalFileSize);
+      trackDownloadComplete('merge_pdf', state.result.size || totalFileSize, processingTime);
+    }
+  }, [state.status, state.result, startTime, files, trackToolComplete, trackDownloadComplete]);
+
+  // Track errors when state changes to error
+  useEffect(() => {
+    if (state.status === 'error' && state.error) {
+      trackToolError('merge_pdf', 'processing_failed', state.error);
+    }
+  }, [state.status, state.error, trackToolError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
