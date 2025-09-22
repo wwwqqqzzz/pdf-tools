@@ -10,7 +10,7 @@ import {
 
 export interface ConvertOptions {
   onProgress?: (progress: number) => void;
-  outputFormat: 'docx' | 'txt' | 'jpg' | 'png';
+  outputFormat: 'docx' | 'txt' | 'jpg' | 'png' | 'pdf';
   quality?: 'low' | 'medium' | 'high'; // For image conversion
 }
 

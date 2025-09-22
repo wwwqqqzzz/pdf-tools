@@ -485,8 +485,7 @@ export function formatCompressionResult(result: CompressResult): string {
     return `File size: ${compressedMB}MB (no significant compression achieved)`;
   }
 }
-// 获取压缩
-级别描述
+// 获取压缩级别描述
 export function getCompressionDescription(level: 'low' | 'medium' | 'high'): string {
   const descriptions = {
     low: '轻度压缩：清理元数据，重建文件结构（推荐日常使用）',

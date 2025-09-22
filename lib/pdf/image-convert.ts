@@ -131,7 +131,8 @@ async function renderWithPDFJS(file: File, options: ImageConvertOptions): Promis
     
     await page.render({
       canvasContext: context,
-      viewport: viewport
+      viewport: viewport,
+      canvas: canvas
     }).promise;
     
     const imageData = canvas.toDataURL(
@@ -266,26 +267,7 @@ async function renderWithPreviewMode(file: File, options: ImageConvertOptions): 
       }
     }
     
-    if (onProgress) onProgress(100);
-
-    const fileName = file.name.replace(/\.pdf$/i, `.${format}`);
-    const totalSize = images.reduce((sum, img) => sum + (img.length * 0.75), 0); // Approximate size
-    
-    return {
-      images,
-      fileName,
-      mimeType: `image/${format}`,
-      originalSize,
-      convertedSize: Math.round(totalSize),
-      pageCount: pages.length,
-    };
-    
-  } catch (error) {
-    if (error instanceof PDFProcessingError || error instanceof MemoryError || error instanceof TimeoutError) {
-      throw error;
-    }
-    throw new PDFProcessingError(`Failed to convert PDF to images: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+    return { images, pageCount: pages.length };
 }
 
 // Image to PDF conversion

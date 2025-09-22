@@ -62,7 +62,7 @@ export default function PDFToWordClient() {
 
   const handleDownload = useCallback(() => {
     if (result) {
-      const blob = new Blob([result.data], { type: result.mimeType });
+      const blob = new Blob([result.data as any], { type: result.mimeType });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
