@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
-import { GoogleAnalyticsScript } from '@/components/analytics/GoogleAnalytics';
+import SimpleGA from '@/components/analytics/SimpleGA';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -41,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://pdftools.com',
+    url: 'https://pdf-tools.20030727.xyz',
     siteName: 'PDF Tools',
     title: 'PDF Tools - Free Online PDF Editor & Converter',
     description:
@@ -72,13 +71,37 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   return (
     <html lang="en">
       <head>
-        <GoogleAnalyticsScript />
+        {isProduction && gaId && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gaId}', {
+                    page_title: document.title,
+                    page_location: window.location.href,
+                    send_page_view: true
+                  });
+                  console.log('Google Analytics initialized with ID: ${gaId}');
+                `,
+              }}
+            />
+          </>
+        )}
       </head>
       <body className={inter.className}>
-        <GoogleAnalytics />
         <div className="min-h-screen flex flex-col">
           {children}
         </div>

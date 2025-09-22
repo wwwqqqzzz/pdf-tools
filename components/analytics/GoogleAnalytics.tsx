@@ -49,7 +49,11 @@ export function GoogleAnalyticsScript() {
             gtag('config', '${GA_TRACKING_ID}', {
               page_title: document.title,
               page_location: window.location.href,
+              send_page_view: true
             });
+            
+            // Debug log
+            console.log('Google Analytics initialized with ID: ${GA_TRACKING_ID}');
           `,
         }}
       />
